@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAIL — Interactive theory→advice decision tree</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-title">
+      GAIL &mdash; Theory<span class="arrow">&rarr;</span>Advice Decision Tree
+    </div>
+    <div class="brand-sub">
+      Interactive walk through the depth-5 decision tree from
+      <em>Can LLMs Give Relationship Advice?</em> (Cetinkaya &amp; Elmas, 2026).
+      Depth 5 &middot; 25 leaves &middot; 71.7% training accuracy on
+      1,337 posts.
+    </div>
+  </div>
+  <nav class="tabs">
+    <button id="tab-guided" class="tab active">Guided walk</button>
+    <button id="tab-full"   class="tab">Full tree</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ═════════════════════════════════════════════════════════════════
+       VIEW 1 &mdash; GUIDED WALK
+       ═════════════════════════════════════════════════════════════════ -->
+  <section id="view-guided" class="view active">
+
+    <div class="left-panel">
+
+      <div class="progress-card">
+        <div class="progress-row">
+          <span class="progress-label">Question</span>
+          <span id="progress-step">1</span>
+          <span class="progress-of">/ up to 5 (tree depth)</span>
+        </div>
+        <div class="progress-row">
+          <span class="progress-label">Posts similar to your answers so far</span>
+          <span id="progress-samples">1,337 (100%)</span>
+        </div>
+      </div>
+
+      <div id="question-card" class="question-card">
+        <div class="question-field" id="question-field">
+          <!-- filled by JS: framework tag + field name -->
+        </div>
+        <div class="question-text" id="question-text">
+          <!-- filled by JS -->
+        </div>
+        <div class="btn-row">
+          <button id="btn-yes" class="btn btn-yes">
+            <span class="btn-word">YES</span>
+            <span class="btn-hint" id="btn-yes-hint"></span>
+          </button>
+          <button id="btn-no" class="btn btn-no">
+            <span class="btn-word">NO</span>
+            <span class="btn-hint" id="btn-no-hint"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <div class="history-title">Your path so far</div>
+        <ol id="history-list" class="history-list">
+          <li class="history-empty">No answers yet. Answer the question above to begin.</li>
+        </ol>
+        <div class="history-actions">
+          <button id="btn-back"   class="btn-mini">&larr; Undo last</button>
+          <button id="btn-reset"  class="btn-mini">Reset</button>
+        </div>
+      </div>
+
+      <div id="leaf-card" class="leaf-card" hidden>
+        <div class="leaf-title">You reached a leaf of the tree</div>
+        <div class="leaf-explainer">
+          Based on the answers above, the tree routes similar posts to the
+          following advice pattern. This is what the Reddit top-comment
+          data trained on 1,337 posts predicts most often for this
+          combination.
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="right-panel">
+
+      <div class="score-card">
+        <div class="score-title">Binary advice prediction</div>
+        <div class="binary-bar">
+          <div id="bar-exit"   class="bar-exit"   style="width:50%"></div>
+          <div id="bar-repair" class="bar-repair" style="width:50%"></div>
+        </div>
+        <div class="binary-legend">
+          <div class="legend-item">
+            <span class="legend-swatch swatch-exit"></span>
+            <span class="legend-word">EXIT</span>
+            <span id="pct-exit"   class="legend-pct">50.0%</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-repair"></span>
+            <span class="legend-word">REPAIR</span>
+            <span id="pct-repair" class="legend-pct">50.0%</span>
+          </div>
+        </div>
+        <div class="score-caption">
+          Direction the top Reddit response usually recommends for posts
+          matching this profile.
+        </div>
+      </div>
+
+      <div class="eight-card">
+        <div class="eight-title">8-class advice breakdown</div>
+        <div class="eight-note">
+          At a leaf: the empirical distribution of the 8 canonical
+          advice categories among Reddit top comments for posts routed
+          to this leaf.
+        </div>
+        <div id="eight-list" class="eight-list">
+          <div class="eight-empty">
+            Answer questions on the left to walk to a leaf.
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </section>
+
+
+  <!-- ═════════════════════════════════════════════════════════════════
+       VIEW 2 &mdash; FULL TREE (SVG with pan/zoom)
+       ═════════════════════════════════════════════════════════════════ -->
+  <section id="view-full" class="view">
+    <div class="full-toolbar">
+      <div class="tb-group">
+        <button id="zoom-in"    class="tb-btn" title="Zoom in">+</button>
+        <button id="zoom-out"   class="tb-btn" title="Zoom out">&minus;</button>
+        <button id="zoom-reset" class="tb-btn" title="Fit to screen">Fit</button>
+        <button id="zoom-100"   class="tb-btn" title="100% (native)">100%</button>
+      </div>
+      <div class="tb-hint">
+        Scroll to zoom &middot; drag to pan &middot; double-click on the
+        canvas to reset
+      </div>
+    </div>
+    <div id="svg-canvas" class="svg-canvas">
+      <!-- SVG loaded and injected by JS so we can wrap it in a
+           pan/zoom container -->
+      <div class="svg-loading">Loading full tree&hellip;</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Source: <code>notebooks/59_tree_natural_labels.py</code> +
+  <code>notebooks/63_tree_to_json.py</code>. Data:
+  <code>tree.json</code> and <code>full_tree.svg</code>.
+</footer>
+
+<script src="viewer.js"></script>
+</body>
+</html>
